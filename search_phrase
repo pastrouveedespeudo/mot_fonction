@@ -1,0 +1,118 @@
+import requests
+from bs4 import *
+
+
+
+def phrase(la_phrase):
+    la_phrase = la_phrase.split()
+
+    nettoyage = []
+
+    for mot in la_phrase:
+        mot = mot.lower()
+        deja = ""
+        
+        for lettre in mot:
+            if lettre == ".":
+                mot = mot[:-1]
+                nettoyage.append(mot)
+                nettoyage.append(".")
+                deja = True
+                break
+
+        if deja != True:
+            nettoyage.append(mot)
+
+            
+    return nettoyage
+
+
+def nettoyage_apostophe(nettoyage):
+
+    
+    for mot in nettoyage:
+
+        Verbe = ""
+        mot_travaille = ""
+        
+        for lettre in mot:
+            if lettre == "'":
+                index = mot.index(lettre)
+                mot_travaille = mot[index + 1:]
+                est_ce_verbe = verbe(mot_travaille)
+
+                if est_ce_verbe == True:
+                    index_1 = nettoyage.index(mot)
+                    nettoyage.remove(nettoyage[index_1])
+                    pronom = str(mot[:index]) + "e"
+                    nettoyage.insert(index_1, pronom)
+                    nettoyage.insert(index_1 + 1, mot_travaille)
+                    Verbe = True
+
+                    
+        if Verbe == True:
+             break
+
+            
+    return nettoyage
+
+
+    
+def nettoyage_pluriel(nettoyage):
+    pass
+
+
+
+
+def verbe(mot):
+    path = "http://www.conjugaison.com/verbe/{}.html"
+    path = path.format(mot)
+    
+    r = requests.get(path)
+    page = r.content
+    soup = BeautifulSoup(page, "html.parser")
+    propriete = soup.find_all("h3")
+
+    for i in propriete:
+        if i.string == "Désolé, aucun verbe n'a été trouvé":
+            return False
+
+    return True
+
+
+
+def recherche(mot):
+    path = "https://www.le-dictionnaire.com/definition/{}"
+    path = path.format(mot)
+    
+    r = requests.get(path)
+    page = r.content
+    soup = BeautifulSoup(page, "html.parser")
+    propriete = soup.find_all("div", {"class","defbox"})
+
+    liste_fonction = []
+    for i in propriete:
+        fonction = i.find("span")
+        liste_fonction.append(fonction.string)
+
+    return liste_fonction
+
+
+
+
+
+
+
+nettoyage = phrase("Bonjour. j'aime les patates")
+nettoyage_apostophe(nettoyage)
+
+
+
+
+
+
+
+
+
+
+
